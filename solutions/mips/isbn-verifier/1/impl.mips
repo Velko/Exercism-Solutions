@@ -1,0 +1,43 @@
+.globl is_valid
+
+is_valid:
+    li $v0, 0        # result (false for premature exits)
+    li $t1, 10       # digit/multiplier
+    li $t2, 0        # accumulated sum
+
+loop:
+    lb $t0, 0($a0)
+    beq $t0, '-', next    # fine, just go to next
+    blt $t0, '0', done    # less that '0', exit (this also bails out on \0)
+    beq $t0, 'X', last_10 # special case - check if last digit
+    bgt $t0, '9', done    # anything else, exit
+
+    addi $t0, $t0, -48    # subtract ASCII of '0'
+    j mul_add
+
+last_10:
+    bne $t1, 1, done      # only valid if it is the last 'digit'
+    li $t0, 10
+
+mul_add:
+    # multiply and add to the accumulator
+    mult $t0, $t1
+    mflo $t0
+    add $t2, $t2, $t0
+
+    addi $t1, $t1, -1     # valid digit processed
+next:
+    addi $a0, $a0, 1      # advance pointer
+    bne $t1, $zero, loop  # loop until valid digit counter reaches 0
+
+    
+    lb $t0, 0($a0)
+    bne $t0, $zero, done  # exit if there are unprocessed digits left
+
+    li $t0, 11
+    div $t2, $t0          # calculate mod 11
+    mfhi $t0
+    slti $v0, $t0, 1      # and check if it is < 1
+
+done:
+    jr $ra
