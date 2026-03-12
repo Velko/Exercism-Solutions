@@ -1,0 +1,44 @@
+.globl difference_of_squares
+
+# square_of_sum is actually sum_of_squares + "something". That "something" is exactly what we need to calculate
+
+# sum of 2 numbers squared
+# (a+b) * (a+b) => a*a + a*b + b*a + b*b = a*a + 2*a*b + b*b
+
+# sum of 3 numbers squared
+# (a+b+c) * (a+b+c)  => (a*a + a*b + a*c) + (a*b + b*b + b*c) + (a*c + b*c + c*c) => (a*a + b*b + c*c ) + (2*a*b + 2*a*c + 2*b*c)
+
+# sum of 4 numbers squared
+# (a+b+c+d)*(a+b+c+d) => (a*a + a*b + a*c + a*d) + (b*a + b*b + b*c + b*d) + (c*a + c*b + c*c + c*d) + (d*a + d*b + d*c + d*d)
+#                     => (a*a + a*b + a*c + a*d) + (a*b + b*b + b*c + b*d) + (a*c + b*c + c*c + c*d) + (a*d + b*d + c*d + d*d)
+#                     => (2*a*b + 2*a*c + 2*a*d + 2*b*c + 2*b*d + 2*c*d) + (a*a + b*b + c*c + d*d)
+#                     => 2 * (a*b + a*c + a*d + b*c + b*d + c*d) + (a*a + b*b + c*c + d*d)
+#                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ - the part we need
+
+difference_of_squares:
+    li $v0, 0         # result
+
+    li $t0, 1         # outer counter
+outer_loop:
+    bgt $t0, $a0, outer_done
+
+    addi $t1, $t0, 1  #inner counter
+inner_loop:
+    bgt $t1, $a0, inner_done
+
+    # multiply and add to the result
+    mult $t0, $t1
+    mflo $t2
+    add $v0, $v0, $t2
+
+    addi $t1, $t1, 1
+    j inner_loop
+
+inner_done:
+    addi $t0, $t0, 1
+    j outer_loop
+
+outer_done:
+    add $v0, $v0, $v0 # multiply the result by 2
+
+    jr $ra

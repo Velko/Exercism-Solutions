@@ -1,0 +1,21 @@
+.globl is_leap_year
+
+is_leap_year:
+    li $t0, 400
+    div $a0, $t0         # divide by 400
+    mfhi $v0             # retrieve reminder
+    slti $v0, $v0, 1     # set to 1 if was 0 (<1)
+    bne $v0, $zero, done # leap detected, done
+
+    li $t0, 100
+    div $a0, $t0         # divide by 100
+    mfhi $v0
+    beq $v0, $zero, done # non-leap detected, done
+
+    li $t0, 4
+    div $a0, $t0         # divide by 4
+    mfhi $v0
+    slti $v0, $v0, 1     # set to 1 if was 0 (<1)
+
+done:
+    jr $ra

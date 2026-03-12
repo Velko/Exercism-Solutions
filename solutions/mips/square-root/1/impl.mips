@@ -1,0 +1,35 @@
+.globl square_root
+
+# Based on sample code at
+# https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)
+
+# Register/variable mapping:
+#     $a0  =   n, x
+#     $v0  =   c
+#     $t0  =   d
+#     $t1  =   c + d
+
+square_root:
+    li $v0, 0
+
+    lui $t0, 0x4000
+init_loop:
+    ble $t0, $a0, calc_loop
+    srl $t0, $t0, 2
+    j init_loop
+
+calc_loop:
+    beq $t0, $zero, done
+
+    add $t1, $v0, $t0
+    srl $v0, $v0, 1
+    blt $a0, $t1, next_d
+    sub $a0, $a0, $t1
+    add $v0, $v0, $t0
+
+next_d:
+    srl $t0, $t0, 2
+    j calc_loop
+
+done:
+    jr $ra

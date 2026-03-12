@@ -1,0 +1,76 @@
+.globl scrabble_score
+
+scrabble_score:
+    li $v0, 0
+
+loop:
+    # load and check for \0    
+    lb $t0, 0($a0)
+    beqz $t0, done
+
+    # convert to uppercase
+    andi $t0, $t0, 0xDF
+
+    # check against each character and jump to
+    # place that adds appropriate score to the
+    # result
+    beq $t0, 'A', score_1
+    beq $t0, 'E', score_1
+    beq $t0, 'I', score_1
+    beq $t0, 'O', score_1
+    beq $t0, 'U', score_1
+    beq $t0, 'L', score_1
+    beq $t0, 'N', score_1
+    beq $t0, 'R', score_1
+    beq $t0, 'S', score_1
+    beq $t0, 'T', score_1
+
+    beq $t0, 'D', score_2
+    beq $t0, 'G', score_2
+
+    beq $t0, 'B', score_3
+    beq $t0, 'C', score_3
+    beq $t0, 'M', score_3
+    beq $t0, 'P', score_3
+
+    beq $t0, 'F', score_4
+    beq $t0, 'H', score_4
+    beq $t0, 'V', score_4
+    beq $t0, 'W', score_4
+    beq $t0, 'Y', score_4
+
+    beq $t0, 'K', score_5
+
+    beq $t0, 'J', score_8
+    beq $t0, 'X', score_8
+    
+    beq $t0, 'Q', score_10
+    beq $t0, 'Z', score_10
+
+    # something else - skip
+    j next
+
+    # the block is constructed of "gaps" between different
+    # letter scores so that it adds necessary total number
+    # depending on where the program jumps into it
+score_10:
+    addi $v0, $v0, 2
+score_8:
+    addi $v0, $v0, 3
+score_5:
+    addi $v0, $v0, 1
+score_4:
+    addi $v0, $v0, 1
+score_3:
+    addi $v0, $v0, 1
+score_2:
+    addi $v0, $v0, 1
+score_1:
+    addi $v0, $v0, 1
+
+next:
+    addi $a0, $a0, 1
+    j loop
+
+done:
+    jr $ra

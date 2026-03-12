@@ -1,0 +1,33 @@
+.globl square
+
+square:
+    # default result
+    li $v0, 0
+    li $v1, 0
+
+    li $t1, 1
+
+    # check 0 < $a0 <= 64
+    li $t0, 64
+    bgt $a0, $t0, done
+    blt $a0, $t1, done
+
+    # adjust places to shift
+    addi $a0, $a0, -1
+
+    # decide if lower or higher word
+    li $t0, 32
+    bgt $a0, $t0, upper
+
+    # and shift it
+    sllv $v0, $t1, $a0
+
+    j done
+
+upper:
+    # adjust for upper word and shift
+    addi $a0, $a0, -32
+    sllv $v1, $t1, $a0
+
+done:
+    jr $ra

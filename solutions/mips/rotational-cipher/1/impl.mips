@@ -1,0 +1,39 @@
+.globl rotate
+rotate:
+    # load and check for \0
+    lb $t0, 0($a0)
+    beq $t0, $zero, done
+
+    # 'a' - 'A' == 0x20, extract the upper/lower case bit
+    # and mask it out
+    andi $t2, $t0, 0x20
+    andi $t1, $t0, 0xDF
+
+    # A-Z detection is now case-insensitive
+    blt $t1, 'A', next
+    bgt $t1, 'Z', next
+
+    # add the key
+    add $t1, $t1, $a1
+
+    # check if result goes past Z, roll back to the beginning
+    # of the alphabet if so
+    ble $t1, 'Z', notover
+    addi $t1, $t1, -26
+notover:
+
+    # apply back the upper/lower case bit
+    or $t0, $t1, $t2
+
+next:
+    # store and go to next
+    sb $t0, 0($a2)
+    addi $a0, $a0, 1
+    addi $a2, $a2, 1
+    j rotate
+
+done:
+    # loop stops when it sees null-terminating char, need
+    # to add it manually here
+    sb $zero, 0($a2)
+    jr $ra
