@@ -1,0 +1,21 @@
+.globl binary_convert
+
+.text
+
+binary_convert:
+    li $v0, 0   # result
+    li $t1, '1' # for digit comparison
+
+decode_loop:
+    lb $t0, 0($a0)       # get char
+    beq $t0, $zero, done # exit if \0 char
+
+    add $v0, $v0, $v0    # shift left previous result
+    bne $t0, $t1, next   # check if was '1'
+    addi $v0, $v0, 1     # add to the result
+next:
+    addi $a0, $a0, 1     # go to next input char
+    j decode_loop
+
+done:
+    jr $ra
