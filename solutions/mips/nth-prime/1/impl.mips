@@ -1,0 +1,57 @@
+.globl nth_prime
+
+.eqv    SIEVE_RANGE    1024
+
+nth_prime:
+
+    # fill array with ones
+    li $t2, 1
+    li $t0, 2
+fill_loop:
+    sb $t2, sieve($t0)
+    addi $t0, $t0, 1
+    blt $t0, SIEVE_RANGE, fill_loop
+
+
+    # Prime Sieve (simple variant), write zeros over non-primes
+    li $t0, 2
+candidate_loop:
+    lb $t1, sieve($t0)
+    beq $t1, $zero, next_candidate
+
+    # prime found, mark next multiples starting from its square
+    mult $t0, $t0
+    mflo $t1
+
+mark_loop:
+    sb $zero, sieve($t1)
+    add $t1, $t1, $t0
+    blt $t1, SIEVE_RANGE, mark_loop
+
+next_candidate:
+    addi $t0, $t0, 1
+    blt $t0, SIEVE_RANGE, candidate_loop
+
+
+    # loop through the primes list and find n-th
+    li $v0, 1    # adjust so that next increment arrives at 1st prime
+enum_loop:
+    addi $v0, $v0, 1
+    bge $v0, SIEVE_RANGE, out_of_range     # check if reached max range
+
+    lb $t0, sieve($v0)
+    sub $a0, $a0, $t0
+    bgt $a0, $zero, enum_loop
+
+    jr $ra
+
+# current implementation supports only primes up to SIEVE_RANGE (1024), return error
+# if requested number is too large
+out_of_range:
+    li $v0, -1
+    jr $ra
+
+
+.data
+
+sieve: .byte 0:SIEVE_RANGE
