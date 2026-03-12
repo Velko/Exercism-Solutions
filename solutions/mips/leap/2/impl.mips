@@ -1,0 +1,26 @@
+.globl is_leap_year
+
+is_leap_year:
+    li $v0, 0                # non-leap, unless detected otherwise
+
+    li $t0, 4
+    div $a0, $t0             # divide by 4
+    mfhi $t1                 # retrieve reminder
+    bne $t1, $zero, non_leap # not divisible by 4 -> not leap
+
+    li $t0, 100              # (was divisible by 4, keep checking)
+    div $a0, $t0             # divide by 100
+    mfhi $t1
+    bne $t1, $zero, leap     # not divisible by 100 -> leap
+
+    li $t0, 400              # (was divisible by 100, keep checking)
+    div $a0, $t0             # divide by 400
+    mfhi $t1
+    bne $t1, $zero, non_leap # not divisible by 400 -> not leap
+
+                             # (was divisible by 400, must be leap)
+leap:
+    li $v0, 1
+
+non_leap:
+    jr $ra
