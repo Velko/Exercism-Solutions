@@ -1,0 +1,91 @@
+.globl raindrops
+
+.text
+
+raindrops:
+
+    move $t9, $ra    # preserve $ra, will call subroutines
+    move $t1, $a0    # preserve $a0, will use as an arg for subroutine
+    move $t2, $a1    # preserve $a1, need to check later
+
+check_rem3:
+    # divide by 3, check reminder and strcpy "Pling"
+    li $t0, 3
+    div $t1, $t0
+    mfhi $t0
+    bne $t0, $zero, check_rem5
+    la $a0, pling
+    jal strcpy
+
+check_rem5:
+    # same for 5, "Plang"
+    li $t0, 5
+    div $t1, $t0
+    mfhi $t0
+    bne $t0, $zero, check_rem7
+    la $a0, plang
+    jal strcpy   
+
+check_rem7:
+    # and 7, "Plong"
+    li $t0, 7
+    div $t1, $t0
+    mfhi $t0
+    bne $t0, $zero, check_no_factors
+    la $a0, plong
+    jal strcpy   
+
+check_no_factors:
+    # if $a1 is unchanged, there were no 3, 5, 7 factors, need to 
+    # convert integer to a string in that case
+    bne $a1, $t2, done
+
+    # Use part of the results buffer for decoding: put a pointer
+    # at the end of what we might need - max number of digits
+    # in 32-bit int + \0
+    addi $a0, $a1, 11
+    sb $zero, 0($a0)   # put initial \0
+
+    # Divide by 10 repeatedly, writing the reminder (converted to
+    # ASCII digit) into buffer. Pointer into the buffer moves
+    # backwards before each digit's write.
+    li $t3, 10
+div_loop:
+    div $t1, $t3
+    mfhi $t0
+    addi $t0, $t0, '0'
+    addi $a0, $a0, -1
+    sb $t0, 0($a0)
+
+    mflo $t1
+    bne $t1, $zero, div_loop
+
+    # when done (quotient reached 0), copy contents of decode buffer
+    # to the beginning of result buffer (conveniently $a0 already     
+    # points to the beginning of decoded number text)
+    jal strcpy
+
+done:
+    move $ra, $t9
+    jr $ra
+
+
+# Copy contents of null-terminated string from buffer pointed by
+# $a0 into buffer pointer by $a1
+strcpy:
+    lb $t0, 0($a0)
+    sb $t0, 0($a1)
+    beq $t0, $zero, strcpy_done
+
+    addi $a0, $a0, 1
+    addi $a1, $a1, 1
+
+    j strcpy
+
+strcpy_done:
+    jr $ra
+
+.data
+pling: .asciiz "Pling"
+plang: .asciiz "Plang"
+plong: .asciiz "Plong"
