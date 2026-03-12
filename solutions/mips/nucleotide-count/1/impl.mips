@@ -1,0 +1,59 @@
+.globl nucleotide_counts
+
+nucleotide_counts:
+    # initialize counters
+    move $t2, $zero
+    move $t3, $zero
+    move $t4, $zero
+    move $t5, $zero
+
+decode_loop:
+    lb $t0, 0($a0)       # get char
+    beq $t0, $zero, done # exit if \0 char
+
+    # check for each nucleotide, increment appropriate counter
+check_a:
+    li $t1, 'A'
+    bne $t0, $t1, check_c
+    addi $t2, $t2, 1
+    j next
+
+check_c:
+    li $t1, 'C'
+    bne $t0, $t1, check_g
+    addi $t3, $t3, 1
+    j next
+
+check_g:
+    li $t1, 'G'
+    bne $t0, $t1, check_t
+    addi $t4, $t4, 1
+    j next
+
+check_t:
+    li $t1, 'T'
+    bne $t0, $t1, error
+    addi $t5, $t5, 1
+    j next
+
+error:
+    # unknown char detected
+    li $t2, -1
+    li $t3, -1
+    li $t4, -1
+    li $t5, -1
+
+    j done
+
+next:
+    addi $a0, $a0, 1
+    j decode_loop
+
+done:
+    # store results
+    sw $t2, 0($a1)
+    sw $t3, 4($a1)
+    sw $t4, 8($a1)
+    sw $t5, 12($a1)
+
+    jr $ra
