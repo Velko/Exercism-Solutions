@@ -1,0 +1,102 @@
+.globl value
+
+value:
+    move $t7, $ra    # preserve $ra, will call subroutines
+    move $a2, $a1    # preserve $a1 as it will be clobbered by color_code
+
+    # calculate 10s band, multiply
+    jal color_code
+    mul $t6, $v0, 10
+
+    # calculate 1s band, add the results
+    move $a0, $a2
+    jal color_code
+    add $v0, $v0, $t6
+
+    move $ra, $t7
+    jr $ra
+    
+
+
+# the rest of the code is simply copied from Resistor Color exercise's solution
+color_code:
+    move $t9, $ra     # store $ra, will call subroutines
+    move $t8, $a0     # preserve $a0, will need multiple times
+
+    la $a1, colors    # address of color array
+    li $v1, 0         # initial color index
+
+check_color:
+
+    # check if strings pointed by $a0 and $a1 are equal
+    jal strcmp
+    beq $v0, $zero, found
+
+    # strcmp left the $a1 to point "somewhere" in
+    # the string, go to the beginning of next one
+    jal scan_color
+
+    # reset the $a0 to original for next attempt
+    move $a0, $t8
+
+    # next color index
+    addi $v1, $v1, 1
+
+    # continue until limit is reached
+    blt $v1, 10, check_color
+
+found:
+    move $v0, $v1
+    move $ra, $t9
+    jr $ra
+
+# compare strings, pointed by $a0 and $a1,
+# returns zero in $v0 if equal
+# the $a0 and $a1 are left to point to last
+# checked characters
+strcmp:
+    lb $t0, 0($a0)
+    lb $v0, 0($a1)
+    # if char pointed by $a0 is \0, $v0 contains
+    # either zero (meaning strings are equal) or
+    # some other value meaning they are not
+    beq $t0, $zero, strcmp_done
+
+    # the result of subtraction is non-zero if chars
+    # differ. If they are equal, we should continue
+    # to scan
+    sub $v0, $t0, $v0
+    bne $v0, $zero, strcmp_done
+
+    # go to next chars
+    addi $a0, $a0, 1
+    addi $a1, $a1, 1
+    j strcmp
+
+strcmp_done:
+    jr $ra
+
+# forward to to the next string pointed by $a1
+scan_color:
+    lb $t0, 0($a1)
+    beq $t0, $zero, done_scan_color
+    addi $a1, $a1, 1
+    j scan_color
+
+done_scan_color:
+    # add 1 past \0 terminating character
+    addi $a1, $a1, 1
+    jr $ra
+
+.data
+colors:
+    .asciiz "black"
+    .asciiz "brown"
+    .asciiz "red"
+    .asciiz "orange"
+    .asciiz "yellow"
+    .asciiz "green"
+    .asciiz "blue"
+    .asciiz "violet"
+    .asciiz "grey"
+    .asciiz "white"
