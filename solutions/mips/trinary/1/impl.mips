@@ -1,0 +1,32 @@
+.globl trinary_convert
+
+.text
+
+trinary_convert:
+    li $v0, 0   # result
+
+decode_loop:
+    # get and check for \0
+    lb $t0, 0($a0)
+    beq $t0, $zero, done
+
+    # validate
+    blt $t0, '0', error
+    bgt $t0, '2', error
+
+    addi $t0, $t0, -48   # subtract ASCII of '0'  
+
+    # multiply by 3   ; v0 = v0 + (v0 + v0)
+    add $t1, $v0, $v0
+    add $v0, $v0, $t1
+
+    add $v0, $v0, $t0    # add trinary digit to the result
+
+    addi $a0, $a0, 1     # go to next input char
+    j decode_loop
+
+error:
+    li $v0, -1
+
+done:
+    jr $ra
