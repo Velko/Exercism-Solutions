@@ -1,0 +1,41 @@
+.globl atbash_cipher
+
+atbash_cipher:
+    li $t1, 219    # encryption key: 219 - 'a' == 'z'
+    li $t2, 6      # first space should be inserted on 6th character
+    li $t3, ' '    # group separator
+
+loop:
+    lb $t0, 0($a0)
+    beq $t0, $zero, done
+
+
+check_digit:
+    blt $t0, '0', next    # less than '0': skip
+    ble $t0, '9', group   # is digit: store as-is (with grouping)
+
+    ori $t0, $t0, 0x20    # convert to lowercase and check a-z
+    blt $t0, 'a', next
+    bgt $t0, 'z', next
+
+    sub $t0, $t1, $t0     # encrypt the letter
+
+group:
+    # insert space to start a new group if needed
+    addi $t2, $t2, -1
+    bne $t2, $zero, store
+    sb $t3, 0($a1)
+    addi $a1, $a1, 1
+    li $t2, 5             # next space after 5 chars (current one excluded)
+
+store:
+    sb $t0, 0($a1)
+    addi $a1, $a1, 1
+
+next:
+    addi $a0, $a0, 1
+    j loop
+
+done:
+    sb $zero, 0($a1)
+    jr $ra
