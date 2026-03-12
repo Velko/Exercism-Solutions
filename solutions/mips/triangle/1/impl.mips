@@ -1,0 +1,35 @@
+.globl triangle
+
+triangle:
+    # no zero-sized sides
+    beq $a0, $zero, invalid
+    beq $a1, $zero, invalid
+    beq $a2, $zero, invalid
+
+    # compare sum of 2 sides to third
+    add $t0, $a0, $a1
+    bgt $a2, $t0, invalid
+    add $t0, $a1, $a2
+    bgt $a0, $t0, invalid
+    add $t0, $a2, $a0
+    bgt $a1, $t0, invalid
+
+    # start with scalene
+    li $v0, 0
+check_01:
+    bne $a0, $a1, check_02
+    addi $v0, $v0, 1 # promote to isoceles
+check_02:
+    bne $a0, $a2, check_12
+    addi $v0, $v0, 1 # promote to either isoceles or equilateral
+    beq $v0, 2, done # do not check further, if it is already equilateral
+check_12:
+    bne $a1, $a2, done
+    addi $v0, $v0, 1 # another chance to promote
+    j done
+        
+invalid:
+    li $v0, 3
+
+done:
+    jr $ra
